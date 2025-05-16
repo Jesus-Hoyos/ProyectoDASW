@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin - Gestión de Usuarios</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
+<body>
+  <div class="container mt-5">
+    <h2>Gestión de Usuarios</h2>
+    <ul id="usuarios" class="list-group mt-4"></ul>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('token');
+
+    fetch('http://localhost:3000/api/users/all', {
+      headers: { Authorization: token }
+    })
+    .then(res => {
+      if (!res.ok) throw new Error('Acceso denegado');
+      return res.json();
+    })
+    .then(usuarios => {
+      const ul = document.getElementById('usuarios');
+      if (usuarios.length === 0) {
+        ul.innerHTML = '<li class="list-group-item">No hay usuarios registrados.</li>';
+        return;
+      }
+
+      usuarios.forEach(u => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item d-flex justify-content-between align-items-center';
+        li.innerHTML = `
+          <div>
+            <strong>${u.nombre}</strong> - ${u.email} - Rol: ${u.rol}
+          </div>
+          <div>
+            <button class="btn btn-sm btn-warning me-2" onclick="cambiarRol('${u._id}', '${u.rol}')">Cambiar Rol</button>
+            <button class="btn btn-sm btn-danger" onclick="eliminarUsuario('${u._id}')">Eliminar</button>
+          </div>
+        `;
+        ul.appendChild(li);
+      });
+    })
+    .catch(err => {
+      alert("No autorizado o error del servidor.");
+      console.error(err);
+    });
+
+    function cambiarRol(id, actual) {
+      const nuevo = actual === 'admin' ? 'estudiante' : 'admin';
+      fetch(`http://localhost:3000/api/users/role/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token
+        },
+        body: JSON.stringify({ rol: nuevo })
+      }).then(() => location.reload());
+    }
+
+    function eliminarUsuario(id) {
+      if (!confirm("¿Estás seguro de eliminar este usuario?")) return;
+      fetch(`http://localhost:3000/api/users/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: token }
+      }).then(() => location.reload());
+    }
+  </script>
+</body>
+</html>

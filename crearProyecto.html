@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Crear Proyecto</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
+<body>
+  <div class="container mt-5">
+    <h2>Publicar un Proyecto</h2>
+    <form id="formProyecto" class="mt-4">
+      <div class="mb-3">
+        <label>Título del proyecto:</label>
+        <input type="text" name="titulo" class="form-control" required />
+      </div>
+      <div class="mb-3">
+        <label>Descripción:</label>
+        <textarea name="descripcion" rows="4" class="form-control" required></textarea>
+      </div>
+      <button type="submit" class="btn btn-success">Publicar</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('formProyecto').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const token = localStorage.getItem('token');
+      const form = new FormData(e.target);
+      const data = Object.fromEntries(form.entries());
+
+      const res = await fetch('http://localhost:3000/api/projects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (res.ok) {
+        alert('Proyecto creado con éxito');
+        window.location.href = 'misProyectos.html';
+      } else {
+        const err = await res.text();
+         console.error('Error del servidor:', err);
+        alert('Error al crear el proyecto');
+      }
+    });
+  </script>
+</body>
+</html>

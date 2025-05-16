@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis Suscripciones</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container mt-5">
+    <h2 class="mb-4">Proyectos a los que estás suscrito</h2>
+    <ul id="subsList" class="list-group"></ul>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      alert('Debes iniciar sesión para ver tus suscripciones.');
+    } else {
+      fetch('http://localhost:3000/api/subscriptions/mias', {
+        headers: { Authorization: token }
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('Error al obtener las suscripciones');
+        return res.json();
+      })
+      .then(proyectos => {
+        const lista = document.getElementById('subsList');
+
+        if (!proyectos || proyectos.length === 0) {
+          lista.innerHTML = '<li class="list-group-item">No estás suscrito a ningún proyecto.</li>';
+          return;
+        }
+
+        proyectos.forEach(p => {
+          if (!p) return; // ⚠️ Evita errores si algún proyecto está vacío
+          const li = document.createElement('li');
+          li.classList.add('list-group-item');
+          li.innerHTML = `
+            <strong>${p.titulo}</strong><br>
+            ${p.descripcion}<br>
+            <small>Publicado: ${new Date(p.fecha_creacion).toLocaleDateString()}</small>
+          `;
+          lista.appendChild(li);
+        });
+      })
+      .catch(err => {
+        console.error(err);
+        alert('Error al cargar tus suscripciones.');
+      });
+    }
+  </script>
+</body>
+</html>

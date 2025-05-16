@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Detalle del Proyecto</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container mt-5">
+  <h2 id="titulo">Cargando...</h2>
+  <p id="descripcion"></p>
+  <p><strong>Publicado:</strong> <span id="fecha"></span></p>
+  <button id="btnSuscribirse" class="btn btn-primary">Suscribirme</button>
+  <a href="projects.html" class="btn btn-secondary ms-2">← Volver</a>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    const token = localStorage.getItem('token');
+
+    // Cargar detalles del proyecto
+    fetch(`http://localhost:3000/api/projects/${id}`)
+      .then(res => {
+        if (!res.ok) throw new Error("No encontrado");
+        return res.json();
+      })
+      .then(p => {
+        document.getElementById('titulo').textContent = p.titulo;
+        document.getElementById('descripcion').textContent = p.descripcion;
+        document.getElementById('fecha').textContent = new Date(p.fecha_creacion).toLocaleDateString();
+      })
+      .catch(err => {
+        document.body.innerHTML = '<h3 class="text-danger">Proyecto no encontrado</h3>';
+      });
+
+    // Suscribirse al proyecto
+    document.getElementById('btnSuscribirse').addEventListener('click', async () => {
+      if (!token) return alert('Debes iniciar sesión para suscribirte');
+
+      const res = await fetch('http://localhost:3000/api/subscriptions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token
+        },
+        body: JSON.stringify({ proyecto_id: id })
+      });
+
+      if (res.ok) {
+        alert('Suscripción realizada correctamente');
+        window.location.href = 'misSuscripciones.html';
+      } else {
+        const err = await res.json();
+        alert('Error al suscribirse: ' + (err.message || 'ya estás suscrito'));
+      }
+    });
+  </script>
+</body>
+</html>
